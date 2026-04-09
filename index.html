@@ -1,0 +1,1600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FLC Portal — Structural Prototype</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; color: #1a1a2e; height: 100vh; display: flex; flex-direction: column; }
+
+  /* TOP BAR */
+  .topbar {
+    background: #1a3a5c;
+    color: white;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    height: 54px;
+    gap: 16px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 100;
+  }
+  .topbar-logo {
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .topbar-logo span.badge { background: #e8a838; color: #1a1a2e; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px; }
+  .topbar-search {
+    flex: 1;
+    max-width: 380px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 6px 14px;
+    color: white;
+    font-size: 13px;
+    margin-left: 20px;
+  }
+  .topbar-search::placeholder { color: rgba(255,255,255,0.55); }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+  .topbar-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: #e8a838; color: #1a1a2e;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; cursor: pointer;
+  }
+  .notif-btn { background: none; border: none; color: rgba(255,255,255,0.75); font-size: 18px; cursor: pointer; }
+
+  /* LAYOUT */
+  .app-body { display: flex; flex: 1; overflow: hidden; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 230px;
+    background: #12294a;
+    color: #c8d8ea;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow-y: auto;
+  }
+  .sidebar-section { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.07); }
+  .sidebar-section:last-child { border-bottom: none; }
+  .sidebar-label {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: rgba(200,216,234,0.45);
+    padding: 10px 16px 4px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 16px;
+    cursor: pointer;
+    border-radius: 6px;
+    margin: 1px 6px;
+    font-size: 13.5px;
+    transition: background 0.15s;
+    position: relative;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+  .nav-item.active { background: rgba(232,168,56,0.18); color: #f0c060; }
+  .nav-item .icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+  .nav-item .privacy-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    margin-left: auto; flex-shrink: 0;
+  }
+  .dot-open { background: #4caf87; }
+  .dot-private { background: #e8a838; }
+  .dot-invite { background: #7b8fa8; }
+
+  /* MAIN */
+  .main { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+  .view { display: none; flex-direction: column; gap: 20px; }
+  .view.active { display: flex; }
+
+  /* CARDS */
+  .page-header {
+    display: flex; align-items: flex-start; gap: 16px;
+    background: white; border-radius: 12px; padding: 20px 24px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  }
+  .page-header-icon { font-size: 36px; }
+  .page-header h1 { font-size: 20px; font-weight: 700; color: #1a3a5c; }
+  .page-header p { font-size: 13.5px; color: #5a6a80; margin-top: 4px; line-height: 1.5; }
+  .page-header .tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .tag { font-size: 11px; background: #e8f0fb; color: #2355a0; padding: 3px 8px; border-radius: 10px; font-weight: 600; }
+  .tag.gold { background: #fef3db; color: #9a6500; }
+  .tag.green { background: #e4f6ee; color: #1a7a50; }
+  .tag.gray { background: #edf0f4; color: #5a6a80; }
+
+  .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+  .card h3 { font-size: 14px; font-weight: 700; color: #1a3a5c; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .card h3 .count { background: #1a3a5c; color: white; font-size: 10px; padding: 2px 6px; border-radius: 8px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+
+  /* POST ITEMS */
+  .post-item {
+    display: flex; gap: 10px; padding: 12px 0;
+    border-bottom: 1px solid #f0f2f5;
+  }
+  .post-item:last-child { border-bottom: none; }
+  .post-avatar { width: 36px; height: 36px; border-radius: 50%; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .post-content .name { font-size: 13px; font-weight: 600; color: #1a3a5c; }
+  .post-content .meta { font-size: 11.5px; color: #8a9ab0; margin-top: 1px; }
+  .post-content .text { font-size: 13px; color: #3a4a5c; margin-top: 6px; line-height: 1.5; }
+  .post-content .reactions { font-size: 12px; color: #8a9ab0; margin-top: 6px; }
+
+  /* DOMAIN TILES */
+  .domain-tile {
+    border-radius: 10px; padding: 16px;
+    cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+    position: relative; overflow: hidden;
+    border: 2px solid transparent;
+  }
+  .domain-tile:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+  .domain-tile .emoji { font-size: 26px; }
+  .domain-tile .name { font-weight: 700; font-size: 13.5px; margin-top: 8px; }
+  .domain-tile .desc { font-size: 11.5px; margin-top: 4px; opacity: 0.8; line-height: 1.4; }
+  .domain-tile .member-count { font-size: 11px; margin-top: 8px; opacity: 0.7; }
+
+  .d1 { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1e3a8a; }
+  .d2 { background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #065f46; }
+  .d3 { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #78350f; }
+  .d4 { background: linear-gradient(135deg, #ede9fe, #ddd6fe); color: #4c1d95; }
+  .d5 { background: linear-gradient(135deg, #ffedd5, #fed7aa); color: #9a3412; }
+  .d6 { background: linear-gradient(135deg, #dcfce7, #bbf7d0); color: #14532d; }
+
+  /* PROGRESS / SELF-ASSESSMENT */
+  .progress-bar-wrap { margin-top: 8px; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: #5a6a80; margin-bottom: 4px; }
+  .progress-bar { height: 8px; background: #e8edf3; border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #1a3a5c, #2a6aac); }
+
+  /* BADGE ROW */
+  .badge-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+  .badge-item {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    background: #f8f9fc; border-radius: 10px; padding: 10px 12px;
+    border: 2px solid #e8edf3; cursor: default; min-width: 80px;
+  }
+  .badge-item.earned { border-color: #e8a838; background: #fffbf0; }
+  .badge-item .badge-icon { font-size: 22px; }
+  .badge-item .badge-name { font-size: 10.5px; font-weight: 600; color: #1a3a5c; text-align: center; }
+  .badge-item .badge-status { font-size: 9.5px; color: #8a9ab0; }
+  .badge-item.earned .badge-status { color: #e8a838; }
+
+  /* CHECKLIST */
+  .checklist-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid #f0f2f5; font-size: 13px;
+  }
+  .checklist-item:last-child { border-bottom: none; }
+  .check-circle {
+    width: 20px; height: 20px; border-radius: 50%; border: 2px solid #c8d4e0;
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: white;
+  }
+  .check-circle.done { background: #1a7a50; border-color: #1a7a50; }
+  .checklist-item .step-text { flex: 1; }
+  .checklist-item .step-link { font-size: 12px; color: #2a6aac; text-decoration: none; font-weight: 500; }
+
+  /* PRIVACY LEGEND */
+  .privacy-legend {
+    background: #f8f9fc; border: 1px solid #e0e6ef; border-radius: 10px;
+    padding: 14px 16px; font-size: 12.5px;
+  }
+  .privacy-legend h4 { font-size: 12px; font-weight: 700; color: #1a3a5c; margin-bottom: 10px; letter-spacing: 0.5px; text-transform: uppercase; }
+  .privacy-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 7px; }
+  .privacy-row:last-child { margin-bottom: 0; }
+  .privacy-dot-lg { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 2px; }
+
+  /* PEOPLE / MEMBERS */
+  .member-card {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid #f0f2f5;
+  }
+  .member-card:last-child { border-bottom: none; }
+  .member-avatar { width: 38px; height: 38px; border-radius: 50%; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .member-info .member-name { font-size: 13px; font-weight: 600; color: #1a3a5c; }
+  .member-info .member-meta { font-size: 11.5px; color: #7a8a9c; margin-top: 1px; }
+  .member-badges { margin-left: auto; display: flex; gap: 4px; }
+  .mini-badge { font-size: 14px; }
+
+  /* ACTION PLAN */
+  .plan-row {
+    display: grid; grid-template-columns: 1.2fr 2fr 1fr 1fr;
+    gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0f2f5;
+    font-size: 12.5px; align-items: start;
+  }
+  .plan-row.header { font-weight: 700; color: #1a3a5c; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 6px; }
+  .plan-row:last-child { border-bottom: none; }
+  .status-pill { display: inline-block; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: 600; }
+  .s-exploring { background: #e8edf3; color: #5a6a80; }
+  .s-developing { background: #fef3db; color: #9a6500; }
+  .s-implementing { background: #d1fae5; color: #065f46; }
+
+  /* EVENTS */
+  .event-item { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid #f0f2f5; }
+  .event-item:last-child { border-bottom: none; }
+  .event-date { background: #1a3a5c; color: white; border-radius: 8px; padding: 6px 10px; text-align: center; flex-shrink: 0; min-width: 50px; }
+  .event-date .month { font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; opacity: 0.8; }
+  .event-date .day { font-size: 20px; font-weight: 700; line-height: 1; }
+  .event-info .event-title { font-size: 13px; font-weight: 600; color: #1a3a5c; }
+  .event-info .event-meta { font-size: 11.5px; color: #7a8a9c; margin-top: 3px; }
+  .rsvp-btn { margin-top: 6px; background: none; border: 1.5px solid #2a6aac; color: #2a6aac; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 6px; cursor: pointer; }
+  .rsvp-btn:hover { background: #2a6aac; color: white; }
+
+  /* ARTIFACT GALLERY */
+  .artifact-card {
+    border: 1px solid #e0e6ef; border-radius: 10px; padding: 14px;
+    transition: box-shadow 0.15s;
+  }
+  .artifact-card:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.1); }
+  .artifact-card .art-domain { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #2a6aac; margin-bottom: 6px; }
+  .artifact-card .art-title { font-size: 13.5px; font-weight: 700; color: #1a3a5c; margin-bottom: 4px; }
+  .artifact-card .art-district { font-size: 12px; color: #7a8a9c; }
+  .artifact-card .art-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
+
+  /* PHASE TIMELINE */
+  .phase-item { display: flex; gap: 14px; padding: 10px 0; border-bottom: 1px solid #f0f2f5; align-items: flex-start; }
+  .phase-item:last-child { border-bottom: none; }
+  .phase-num { background: #1a3a5c; color: white; border-radius: 20px; font-size: 11px; font-weight: 700; padding: 3px 9px; flex-shrink: 0; margin-top: 1px; }
+  .phase-info .phase-title { font-size: 13px; font-weight: 600; color: #1a3a5c; }
+  .phase-info .phase-meta { font-size: 12px; color: #7a8a9c; margin-top: 3px; }
+  .phase-status { margin-left: auto; flex-shrink: 0; }
+
+  /* FLOATING NAV TOOLTIP */
+  .tooltip { display: none; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
+
+  .section-intro { background: linear-gradient(135deg, #1a3a5c 0%, #2a6aac 100%); color: white; border-radius: 12px; padding: 20px 24px; }
+  .section-intro h2 { font-size: 17px; font-weight: 700; }
+  .section-intro p { font-size: 13px; opacity: 0.85; margin-top: 6px; line-height: 1.6; }
+
+  .inline-notice { background: #fffbf0; border: 1px solid #f5d76e; border-radius: 8px; padding: 10px 14px; font-size: 12.5px; color: #7a5500; display: flex; gap: 8px; align-items: flex-start; }
+
+  button.primary { background: #1a3a5c; color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  button.primary:hover { background: #2a5080; }
+
+  /* MEETING FOLDER CARDS */
+  .meeting-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .folder-card {
+    border-radius: 12px; overflow: hidden;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.08);
+    transition: box-shadow 0.15s, transform 0.15s;
+    background: white;
+  }
+  .folder-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.13); transform: translateY(-1px); }
+  .folder-tab {
+    height: 8px; width: 40%; margin-left: 14px;
+    border-radius: 4px 4px 0 0; position: relative; top: 1px;
+  }
+  .folder-header {
+    padding: 12px 14px 10px;
+    border-bottom: 1px solid #f0f2f5;
+  }
+  .folder-type { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 4px; }
+  .folder-title { font-size: 13.5px; font-weight: 700; color: #1a3a5c; line-height: 1.3; }
+  .folder-meta { font-size: 11.5px; color: #7a8a9c; margin-top: 4px; display: flex; flex-direction: column; gap: 2px; }
+  .folder-body { padding: 10px 14px 12px; }
+  .folder-files { display: flex; flex-direction: column; gap: 5px; }
+  .folder-file {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 12px; color: #3a4a5c; padding: 5px 8px;
+    background: #f8f9fc; border-radius: 6px; cursor: pointer;
+    transition: background 0.1s;
+  }
+  .folder-file:hover { background: #edf2fb; color: #2a6aac; }
+  .folder-file.empty { color: #aab0bc; font-style: italic; cursor: default; }
+  .folder-file.empty:hover { background: #f8f9fc; color: #aab0bc; }
+  .folder-file .file-icon { font-size: 13px; flex-shrink: 0; }
+  .folder-toggle {
+    width: 100%; background: none; border: none;
+    padding: 6px 14px; font-size: 11.5px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; gap: 5px;
+    border-top: 1px solid #f0f2f5; color: #5a7aaa;
+  }
+  .folder-toggle:hover { background: #f0f5ff; }
+
+  /* meeting type colors */
+  .mt-kickoff  { color: #5b21b6; } .ft-kickoff  { background: #7c3aed; } .fh-kickoff  { border-left: 3px solid #7c3aed; }
+  .mt-flc      { color: #1e40af; } .ft-flc      { background: #1a3a5c; } .fh-flc      { border-left: 3px solid #1a3a5c; }
+  .mt-isd      { color: #065f46; } .ft-isd      { background: #059669; } .fh-isd      { border-left: 3px solid #059669; }
+  .mt-virtual  { color: #92400e; } .ft-virtual  { background: #d97706; } .fh-virtual  { border-left: 3px solid #d97706; }
+  .mt-summit   { color: #831843; } .ft-summit   { background: #db2777; } .fh-summit   { border-left: 3px solid #db2777; }
+
+  .meeting-filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+  .mfilter-btn {
+    padding: 6px 14px; border-radius: 20px; border: 1.5px solid #e0e6ef;
+    background: white; font-size: 12px; font-weight: 600; cursor: pointer; color: #5a6a80;
+    transition: all 0.1s;
+  }
+  .mfilter-btn.active { background: #1a3a5c; color: white; border-color: #1a3a5c; }
+  .mfilter-btn:hover:not(.active) { border-color: #1a3a5c; color: #1a3a5c; }
+
+  .upcoming-badge { background: #d1fae5; color: #065f46; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 8px; margin-left: 6px; }
+  .past-dim { opacity: 0.6; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">
+    🏫 Future of Learning Council
+    <span class="badge">PREVIEW</span>
+  </div>
+  <input class="topbar-search" type="text" placeholder="Search people, resources, discussions…">
+  <div class="topbar-right">
+    <button class="notif-btn" title="Notifications">🔔</button>
+    <div class="topbar-avatar" title="Sarah M. — Traverse City APS">SM</div>
+  </div>
+</div>
+
+<!-- APP BODY -->
+<div class="app-body">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Main</div>
+      <div class="nav-item active" onclick="showView('home')" id="nav-home">
+        <span class="icon">🏠</span> FLC Home
+        <span class="privacy-dot dot-open" title="Community Space"></span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Welcome</div>
+      <div class="nav-item" onclick="showView('start-here')" id="nav-start-here">
+        <span class="icon">📖</span> Start Here
+        <span class="privacy-dot dot-open"></span>
+      </div>
+      <div class="nav-item" onclick="showView('orientation')" id="nav-orientation">
+        <span class="icon">🎓</span> Framework Orientation
+        <span class="privacy-dot dot-open"></span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Innovation Framework</div>
+      <div class="nav-item" onclick="showView('why')" id="nav-why">
+        <span class="icon">🏛️</span> Why: Community Vision
+        <span class="privacy-dot dot-open"></span>
+      </div>
+      <div class="nav-item" onclick="showView('framework')" id="nav-framework">
+        <span class="icon">⏱️</span> What: Learner Outcomes
+        <span class="privacy-dot dot-open"></span>
+      </div>
+      <div class="nav-item" onclick="showView('framework')" id="nav-how">
+        <span class="icon">📋</span> How: Learning Model
+        <span class="privacy-dot dot-open"></span>
+      </div>
+      <div class="nav-item" onclick="showView('framework')" id="nav-forwhom">
+        <span class="icon">🎓</span> For Whom: Credentials
+        <span class="privacy-dot dot-open"></span>
+      </div>
+      <div class="nav-item" onclick="showView('framework')" id="nav-where">
+        <span class="icon">📊</span> Where: Ecosystems
+        <span class="privacy-dot dot-open"></span>
+      </div>
+      <div class="nav-item" onclick="showView('framework')" id="nav-when">
+        <span class="icon">✅</span> When: Strategy
+        <span class="privacy-dot dot-open"></span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Professional Learning</div>
+      <div class="nav-item" onclick="showView('pd')" id="nav-pd">
+        <span class="icon">📚</span> PD Catalog
+        <span class="privacy-dot dot-open"></span>
+      </div>
+      <div class="nav-item" onclick="showView('events')" id="nav-events">
+        <span class="icon">📅</span> Office Hours & Events
+        <span class="privacy-dot dot-open"></span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">My District</div>
+      <div class="nav-item" onclick="showView('workspace')" id="nav-workspace">
+        <span class="icon">🔒</span> Traverse City APS
+        <span class="privacy-dot dot-private"></span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Collaboration</div>
+      <div class="nav-item" onclick="showView('collab')" id="nav-collab">
+        <span class="icon">🤝</span> TCAPS + Kalamazoo
+        <span class="privacy-dot dot-invite"></span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Community</div>
+      <div class="nav-item" onclick="showView('gallery')" id="nav-gallery">
+        <span class="icon">🖼️</span> Artifact Gallery
+        <span class="privacy-dot dot-open"></span>
+      </div>
+      <div class="nav-item" onclick="showView('scaling')" id="nav-scaling">
+        <span class="icon">📈</span> Scaling Stories
+        <span class="privacy-dot dot-open"></span>
+      </div>
+      <div class="nav-item" onclick="showView('people')" id="nav-people">
+        <span class="icon">👥</span> People Explorer
+        <span class="privacy-dot dot-open"></span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Meeting Resources</div>
+      <div class="nav-item" onclick="showView('meetings')" id="nav-meetings">
+        <span class="icon">📁</span> 2026–27 Meetings
+        <span class="privacy-dot dot-open"></span>
+      </div>
+    </div>
+
+    <!-- Privacy Legend -->
+    <div style="padding: 12px 10px 16px;">
+      <div class="privacy-legend">
+        <h4>Privacy Key</h4>
+        <div class="privacy-row">
+          <div class="privacy-dot-lg" style="background:#4caf87;"></div>
+          <div><strong>Community</strong> — open to all FLC members</div>
+        </div>
+        <div class="privacy-row">
+          <div class="privacy-dot-lg" style="background:#e8a838;"></div>
+          <div><strong>District Private</strong> — your team + facilitator only</div>
+        </div>
+        <div class="privacy-row">
+          <div class="privacy-dot-lg" style="background:#7b8fa8;"></div>
+          <div><strong>Collaboration</strong> — invite-only, cross-district</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- HOME VIEW -->
+    <div class="view active" id="view-home">
+      <div class="section-intro">
+        <h2>Welcome back, Sarah 👋</h2>
+        <p>Michigan's community for Personalized, Competency-Based Learning. You're working with <strong>Traverse City Area Public Schools</strong> — currently at the <strong>Emerging</strong> readiness tier.</p>
+      </div>
+
+      <!-- Welcome Checklist -->
+      <div class="card">
+        <h3>🗒️ Your Welcome Checklist <span class="count">3 of 5 done</span></h3>
+        <div class="checklist-item">
+          <div class="check-circle done">✓</div>
+          <span class="step-text">Complete your profile</span>
+          <a href="#" class="step-link">View profile →</a>
+        </div>
+        <div class="checklist-item">
+          <div class="check-circle done">✓</div>
+          <span class="step-text">Read "Welcome to the FLC"</span>
+          <a href="#" class="step-link">View →</a>
+        </div>
+        <div class="checklist-item">
+          <div class="check-circle done">✓</div>
+          <span class="step-text">Introduce yourself</span>
+          <a href="#" class="step-link">View post →</a>
+        </div>
+        <div class="checklist-item">
+          <div class="check-circle"></div>
+          <span class="step-text" style="color:#1a3a5c;font-weight:600;">Start the Framework Orientation Course</span>
+          <a href="#" class="step-link" onclick="showView('orientation');return false;">Start →</a>
+        </div>
+        <div class="checklist-item">
+          <div class="check-circle"></div>
+          <span class="step-text">Join your District Workspace</span>
+          <a href="#" class="step-link" onclick="showView('workspace');return false;">Go →</a>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <!-- Community Feed -->
+        <div class="card">
+          <h3>💬 Community Feed</h3>
+          <div class="post-item">
+            <div class="post-avatar" style="background:#bfdbfe;color:#1e3a8a;">JK</div>
+            <div class="post-content">
+              <div class="name">Jennifer K. <span style="font-size:11px;color:#7a8a9c;font-weight:400;">· Kalamazoo PS · District Team Lead</span></div>
+              <div class="meta">2 hours ago · #LearnerPortrait</div>
+              <div class="text">We just finalized our Learner Portrait after 3 community sessions — happy to share our process with anyone starting this work!</div>
+              <div class="reactions">❤️ 14 &nbsp; 💬 8 comments &nbsp; 🔖 Save</div>
+            </div>
+          </div>
+          <div class="post-item">
+            <div class="post-avatar" style="background:#d1fae5;color:#065f46;">MV</div>
+            <div class="post-content">
+              <div class="name">FLC Facilitator Team <span style="font-size:11px;color:#7a8a9c;font-weight:400;">· Michigan Virtual</span></div>
+              <div class="meta">Yesterday · 📌 Pinned</div>
+              <div class="text">📣 April Office Hours is this Thursday at 3pm — topic is <em>Writing Competency Progressions</em>. RSVP in the Events space!</div>
+              <div class="reactions">👍 22 &nbsp; 💬 5 comments</div>
+            </div>
+          </div>
+          <div class="post-item">
+            <div class="post-avatar" style="background:#ede9fe;color:#4c1d95;">RB</div>
+            <div class="post-content">
+              <div class="name">Robert B. <span style="font-size:11px;color:#7a8a9c;font-weight:400;">· Grand Rapids PS · Educator Member</span></div>
+              <div class="meta">2 days ago · #Assessment</div>
+              <div class="text">Question for the group: how are other districts handling assessment when students are at different progression levels in the same class?</div>
+              <div class="reactions">💬 17 replies &nbsp; ⬆️ 9 upvotes</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <!-- My Badges -->
+          <div class="card">
+            <h3>🏅 My Progress Badges</h3>
+            <div class="badge-grid">
+              <div class="badge-item earned"><div class="badge-icon">🎯</div><div class="badge-name">Orientation Complete</div><div class="badge-status">✓ Earned</div></div>
+              <div class="badge-item earned"><div class="badge-icon">📊</div><div class="badge-name">Self-Assessed</div><div class="badge-status">✓ Earned</div></div>
+              <div class="badge-item"><div class="badge-icon">🏛️</div><div class="badge-name">Vision Defined</div><div class="badge-status">In progress</div></div>
+              <div class="badge-item"><div class="badge-icon">⏱️</div><div class="badge-name">Outcomes Mapped</div><div class="badge-status">Not started</div></div>
+              <div class="badge-item"><div class="badge-icon">🤝</div><div class="badge-name">Peer Connector</div><div class="badge-status">Not started</div></div>
+              <div class="badge-item"><div class="badge-icon">📖</div><div class="badge-name">Storyteller</div><div class="badge-status">Not started</div></div>
+            </div>
+          </div>
+          <!-- Upcoming Events Preview -->
+          <div class="card">
+            <h3>📅 Upcoming Events</h3>
+            <div class="event-item">
+              <div class="event-date"><div class="month">APR</div><div class="day">17</div></div>
+              <div class="event-info">
+                <div class="event-title">Office Hours: Competency Progressions</div>
+                <div class="event-meta">Thu 3:00pm · Zoom · FLC Facilitated</div>
+                <button class="rsvp-btn">RSVP</button>
+              </div>
+            </div>
+            <div class="event-item">
+              <div class="event-date"><div class="month">APR</div><div class="day">24</div></div>
+              <div class="event-info">
+                <div class="event-title">Peer Panel: Districts on Assessment</div>
+                <div class="event-meta">Thu 3:00pm · Zoom · Peer-led</div>
+                <button class="rsvp-btn">RSVP</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- START HERE VIEW -->
+    <div class="view" id="view-start-here">
+      <div class="page-header">
+        <div class="page-header-icon">📖</div>
+        <div>
+          <h1>Start Here</h1>
+          <p>Your orientation hub. Read these articles to understand the FLC, the FLC Innovation Framework, and how this portal is organized before diving into the work.</p>
+          <div class="tags"><span class="tag green">Auto-joined</span><span class="tag">Welcome Collection</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>📌 Pinned Articles — Read These First</h3>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#f8f9fc;border-radius:8px;">
+            <div><div style="font-weight:600;font-size:13.5px;color:#1a3a5c;">Welcome to the Future of Learning Council</div><div style="font-size:12px;color:#7a8a9c;margin-top:2px;">5 min read · Posted by FLC Facilitator Team</div></div>
+            <button class="primary" style="font-size:12px;padding:6px 12px;">Read →</button>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#f8f9fc;border-radius:8px;">
+            <div><div style="font-weight:600;font-size:13.5px;color:#1a3a5c;">How This Portal Is Organized</div><div style="font-size:12px;color:#7a8a9c;margin-top:2px;">7 min read · 7 Collections, 3 privacy tiers explained</div></div>
+            <button class="primary" style="font-size:12px;padding:6px 12px;">Read →</button>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#f8f9fc;border-radius:8px;">
+            <div><div style="font-weight:600;font-size:13.5px;color:#1a3a5c;">The FLC Innovation Framework — An Overview</div><div style="font-size:12px;color:#7a8a9c;margin-top:2px;">10 min read · The 6 domains: Why, What, How, For Whom, Where, When</div></div>
+            <button class="primary" style="font-size:12px;padding:6px 12px;">Read →</button>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#f8f9fc;border-radius:8px;">
+            <div><div style="font-weight:600;font-size:13.5px;color:#1a3a5c;">Your First 5 Steps</div><div style="font-size:12px;color:#7a8a9c;margin-top:2px;">3 min read · Mirrors your Welcome Checklist</div></div>
+            <button class="primary" style="font-size:12px;padding:6px 12px;">Read →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORIENTATION COURSE VIEW -->
+    <div class="view" id="view-orientation">
+      <div class="page-header">
+        <div class="page-header-icon">🎓</div>
+        <div>
+          <h1>Innovation Framework Orientation Course</h1>
+          <p>A self-paced, 30-lesson course walking through all six FLC Innovation Framework domains. Earn a completion certificate and badge upon finishing.</p>
+          <div class="tags"><span class="tag green">Auto-joined</span><span class="tag gold">Earns Badge</span><span class="tag">Certificate on Completion</span></div>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <h3>📚 Course Structure</h3>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+            <div style="background:#f0f7ff;border-radius:8px;padding:10px 12px;">
+              <div style="font-weight:700;font-size:12.5px;color:#1a3a5c;">Welcome & Overview <span style="font-weight:400;color:#7a8a9c;font-size:11.5px;">(Lessons 1–3)</span></div>
+              <div style="font-size:12px;color:#5a6a80;margin-top:3px;">Framework intro, portal tour, six domains at a glance</div>
+            </div>
+            <div style="background:#dbeafe;border-radius:8px;padding:10px 12px;">
+              <div style="font-weight:700;font-size:12.5px;color:#1e3a8a;">🏛️ Why: Community Vision <span style="font-weight:400;color:#3b7acf;font-size:11.5px;">(Lessons 4–7)</span></div>
+              <div style="font-size:12px;color:#3b5a8a;margin-top:3px;">Community need, vision & mission, learner portrait, reflection quiz</div>
+            </div>
+            <div style="background:#d1fae5;border-radius:8px;padding:10px 12px;">
+              <div style="font-weight:700;font-size:12.5px;color:#065f46;">⏱️ What: Learner Outcomes <span style="font-weight:400;color:#1a7a50;font-size:11.5px;">(Lessons 8–11)</span></div>
+              <div style="font-size:12px;color:#2a6a50;margin-top:3px;">Competencies, progressions, standards alignment, reflection quiz</div>
+            </div>
+            <div style="background:#fef3c7;border-radius:8px;padding:10px 12px;">
+              <div style="font-weight:700;font-size:12.5px;color:#78350f;">📋 How: Learning Model <span style="font-weight:400;color:#9a5500;font-size:11.5px;">(Lessons 12–16)</span></div>
+              <div style="font-size:12px;color:#7a4a20;margin-top:3px;">Values & norms, design principles, assessment, educator portrait</div>
+            </div>
+            <div style="background:#ede9fe;border-radius:8px;padding:10px 12px;">
+              <div style="font-weight:700;font-size:12.5px;color:#4c1d95;">🎓 For Whom: Credentials <span style="font-weight:400;color:#6030b0;font-size:11.5px;">(Lessons 17–20)</span></div>
+            </div>
+            <div style="background:#ffedd5;border-radius:8px;padding:10px 12px;">
+              <div style="font-weight:700;font-size:12.5px;color:#9a3412;">📊 Where: Learning Ecosystems <span style="font-weight:400;color:#c04020;font-size:11.5px;">(Lessons 21–24)</span></div>
+            </div>
+            <div style="background:#dcfce7;border-radius:8px;padding:10px 12px;">
+              <div style="font-weight:700;font-size:12.5px;color:#14532d;">✅ When: Strategy <span style="font-weight:400;color:#1a7a40;font-size:11.5px;">(Lessons 25–27)</span></div>
+            </div>
+            <div style="background:#f8f9fc;border-radius:8px;padding:10px 12px;">
+              <div style="font-weight:700;font-size:12.5px;color:#1a3a5c;">🚀 Next Steps <span style="font-weight:400;color:#5a6a80;font-size:11.5px;">(Lessons 28–30)</span></div>
+              <div style="font-size:12px;color:#5a6a80;margin-top:3px;">Workspace guide, peer connections, 🎉 certificate</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div class="card">
+            <h3>📈 Your Progress</h3>
+            <div style="font-size:13px;color:#5a6a80;margin-bottom:12px;">You've completed <strong style="color:#1a3a5c;">0 of 30 lessons</strong></div>
+            <div class="progress-bar-wrap">
+              <div class="progress-label"><span>Overall</span><span>0%</span></div>
+              <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+            </div>
+            <div style="margin-top:16px;">
+              <button class="primary" style="width:100%;">▶ Start Course — Lesson 1</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3>ℹ️ About This Course</h3>
+            <div style="font-size:13px;color:#5a6a80;line-height:1.7;">
+              <div>📹 Video or infographic per domain section</div>
+              <div>✅ 3–5 question reflection quiz per domain</div>
+              <div>🏅 Completion badge: <em>Orientation Complete</em></div>
+              <div>📜 Branded certificate on finishing</div>
+              <div>📊 Progress visible to your FLC Facilitator</div>
+              <div style="margin-top:8px;font-style:italic;font-size:12px;">You can skip to any domain — sequential progression is optional.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WHY DOMAIN SPACE VIEW -->
+    <div class="view" id="view-why">
+      <div class="page-header" style="border-left: 5px solid #3b82f6;">
+        <div class="page-header-icon">🏛️</div>
+        <div>
+          <h1>Why: Community Vision</h1>
+          <p>Explore the foundational domain of the FLC Innovation Framework. Community Vision is about understanding the "why" behind your district's transformation — grounded in community need, a shared vision, and a clear picture of the learner you're designing for.</p>
+          <div class="tags"><span class="tag" style="background:#dbeafe;color:#1e3a8a;">Innovation Framework Collection</span><span class="tag green">Open to all members</span></div>
+        </div>
+      </div>
+
+      <div class="inline-notice">
+        🔥 <strong style="color:#9a6500;">Icebreaker:</strong>&nbsp; "What's one thing your community most wants from its schools?" — <a href="#" style="color:#9a6500;">Share your answer →</a>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <h3>📌 Featured Resources</h3>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+            <div style="padding:9px;background:#f0f7ff;border-radius:8px;cursor:pointer;">
+              <div style="font-weight:600;font-size:13px;color:#1a3a5c;">About This Domain</div>
+              <div style="font-size:12px;color:#5a6a80;margin-top:2px;">Purpose statement and scope from the FLC Innovation Framework</div>
+            </div>
+            <div style="padding:9px;background:#f0f7ff;border-radius:8px;cursor:pointer;">
+              <div style="font-weight:600;font-size:13px;color:#1a3a5c;">Guiding Questions</div>
+              <div style="font-size:12px;color:#5a6a80;margin-top:2px;">Sub-elements: Community Need, Vision & Mission, Learner Portrait</div>
+            </div>
+            <div style="padding:9px;background:#f0f7ff;border-radius:8px;cursor:pointer;">
+              <div style="font-weight:600;font-size:13px;color:#1a3a5c;">Example Tactics</div>
+              <div style="font-size:12px;color:#5a6a80;margin-top:2px;">Practical approaches used by districts across Michigan</div>
+            </div>
+            <div style="padding:9px;background:#f0f7ff;border-radius:8px;cursor:pointer;">
+              <div style="font-weight:600;font-size:13px;color:#1a3a5c;">External Examples & Resources</div>
+              <div style="font-size:12px;color:#5a6a80;margin-top:2px;">High Tech High Design Principles, XQ Learner Goals, and more</div>
+            </div>
+            <div style="padding:9px;background:#e4f6ee;border-radius:8px;cursor:pointer;border:1px solid #a7d7c0;">
+              <div style="font-weight:700;font-size:13px;color:#065f46;">📚 Professional Learning for This Domain</div>
+              <div style="font-size:12px;color:#2a6a50;margin-top:2px;">MV PLP courses aligned to Community Vision → enroll via SSO</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div class="card">
+            <h3>💬 Domain Discussion</h3>
+            <div class="post-item">
+              <div class="post-avatar" style="background:#dbeafe;color:#1e3a8a;">JK</div>
+              <div class="post-content">
+                <div class="name">Jennifer K. · Kalamazoo PS</div>
+                <div class="meta">2 hours ago · #LearnerPortrait</div>
+                <div class="text">Just posted our Learner Portrait template in the Artifact Gallery — it's tagged #WhyCommunityVision if you want to find it!</div>
+                <div class="reactions">❤️ 11 &nbsp; 💬 6</div>
+              </div>
+            </div>
+            <div class="post-item">
+              <div class="post-avatar" style="background:#fef3c7;color:#78350f;">TR</div>
+              <div class="post-content">
+                <div class="name">Tanya R. · Flint Community Schools</div>
+                <div class="meta">Yesterday · #VisionMission</div>
+                <div class="text">How did districts get buy-in from union leadership when defining the learning model? That's our biggest sticking point.</div>
+                <div class="reactions">💬 9 replies</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>#️⃣ Browse by Sub-Element</h3>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;">
+              <span class="tag" style="cursor:pointer;">#CommunityNeed</span>
+              <span class="tag" style="cursor:pointer;">#VisionMission</span>
+              <span class="tag" style="cursor:pointer;">#LearnerPortrait</span>
+              <span class="tag" style="cursor:pointer;">#StakeholderEngagement</span>
+              <span class="tag" style="cursor:pointer;">#PortraitOfAGraduate</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GENERIC FRAMEWORK VIEW -->
+    <div class="view" id="view-framework">
+      <div class="page-header">
+        <div class="page-header-icon">🗂️</div>
+        <div>
+          <h1>Innovation Framework — All Six Domains</h1>
+          <p>Browse and join dedicated Spaces for each FLC Innovation Framework domain. Each Space includes curated resources, guiding questions, example tactics, and aligned professional learning.</p>
+          <div class="tags"><span class="tag">Innovation Framework Collection</span><span class="tag green">All Spaces open to all members</span></div>
+        </div>
+      </div>
+      <div class="three-col">
+        <div class="domain-tile d1" onclick="showView('why')">
+          <div class="emoji">🏛️</div>
+          <div class="name">Why: Community Vision</div>
+          <div class="desc">Community need, vision & mission, learner portrait</div>
+          <div class="member-count">👥 187 members · 23 posts</div>
+        </div>
+        <div class="domain-tile d2">
+          <div class="emoji">⏱️</div>
+          <div class="name">What: Learner Outcomes</div>
+          <div class="desc">Competencies, progressions, standards alignment</div>
+          <div class="member-count">👥 163 members · 18 posts</div>
+        </div>
+        <div class="domain-tile d3">
+          <div class="emoji">📋</div>
+          <div class="name">How: Learning Model</div>
+          <div class="desc">Values, design principles, assessment, instruction</div>
+          <div class="member-count">👥 155 members · 31 posts</div>
+        </div>
+        <div class="domain-tile d4">
+          <div class="emoji">🎓</div>
+          <div class="name">For Whom: Credentials</div>
+          <div class="desc">Report cards, portfolios, transcripts, credentials</div>
+          <div class="member-count">👥 142 members · 14 posts</div>
+        </div>
+        <div class="domain-tile d5">
+          <div class="emoji">📊</div>
+          <div class="name">Where: Learning Ecosystems</div>
+          <div class="desc">Scheduling, partnerships, technology, facilities</div>
+          <div class="member-count">👥 138 members · 11 posts</div>
+        </div>
+        <div class="domain-tile d6">
+          <div class="emoji">✅</div>
+          <div class="name">When: Strategy</div>
+          <div class="desc">Strategic plan, pilots, annual plan, success metrics</div>
+          <div class="member-count">👥 149 members · 20 posts</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DISTRICT WORKSPACE -->
+    <div class="view" id="view-workspace">
+      <div class="page-header" style="border-left: 5px solid #e8a838; background: linear-gradient(135deg, #fffbf0, white);">
+        <div class="page-header-icon">🔒</div>
+        <div>
+          <h1>Traverse City Area Public Schools</h1>
+          <p>Your private district workspace. Only your team members and your assigned FLC Facilitator (Maria V.) can see this Space. Use it to manage your action plan, track milestones, and store draft artifacts.</p>
+          <div class="tags"><span class="tag gold">District Private (Invite Only)</span><span class="tag">PCBL Readiness: Emerging</span><span class="tag gray">Facilitator: Maria V.</span></div>
+        </div>
+      </div>
+      <div class="two-col">
+        <!-- Action Plan -->
+        <div class="card">
+          <h3>📋 District Action Plan</h3>
+          <div class="plan-row header">
+            <div>Domain</div><div>Goal / Tactic</div><div>Owner</div><div>Status</div>
+          </div>
+          <div class="plan-row">
+            <div><strong>Why</strong> — Community Vision</div>
+            <div>Complete Learner Portrait with community input sessions</div>
+            <div style="font-size:12px;">Sarah M.</div>
+            <div><span class="status-pill s-developing">Developing</span></div>
+          </div>
+          <div class="plan-row">
+            <div><strong>What</strong> — Learner Outcomes</div>
+            <div>Draft competency framework for ELA/Math grades 6–8</div>
+            <div style="font-size:12px;">Kim T.</div>
+            <div><span class="status-pill s-exploring">Exploring</span></div>
+          </div>
+          <div class="plan-row">
+            <div><strong>When</strong> — Strategy</div>
+            <div>Design Year 1 pilot for 2 middle school classrooms</div>
+            <div style="font-size:12px;">Sarah M.</div>
+            <div><span class="status-pill s-implementing">Implementing</span></div>
+          </div>
+          <div style="margin-top:12px;">
+            <button class="primary" style="font-size:12px;">+ Add Action Item</button>
+            <button style="margin-left:8px;background:none;border:1.5px solid #2a6aac;color:#2a6aac;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;">📄 Download Template</button>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <!-- Readiness Self-Assessment -->
+          <div class="card">
+            <h3>📊 District Readiness Self-Assessment</h3>
+            <div class="progress-bar-wrap">
+              <div class="progress-label"><span>🏛️ Why: Community Vision</span><span>Emerging</span></div>
+              <div class="progress-bar"><div class="progress-fill" style="width:40%"></div></div>
+            </div>
+            <div class="progress-bar-wrap" style="margin-top:8px;">
+              <div class="progress-label"><span>⏱️ What: Learner Outcomes</span><span>Exploring</span></div>
+              <div class="progress-bar"><div class="progress-fill" style="width:20%"></div></div>
+            </div>
+            <div class="progress-bar-wrap" style="margin-top:8px;">
+              <div class="progress-label"><span>📋 How: Learning Model</span><span>Exploring</span></div>
+              <div class="progress-bar"><div class="progress-fill" style="width:20%"></div></div>
+            </div>
+            <div class="progress-bar-wrap" style="margin-top:8px;">
+              <div class="progress-label"><span>✅ When: Strategy</span><span>Developing</span></div>
+              <div class="progress-bar"><div class="progress-fill" style="width:50%"></div></div>
+            </div>
+            <div style="margin-top:12px;">
+              <button class="primary" style="font-size:12px;">Retake Self-Assessment</button>
+            </div>
+          </div>
+
+          <!-- Team Members -->
+          <div class="card">
+            <h3>👥 District Team <span class="count">4</span></h3>
+            <div class="member-card">
+              <div class="member-avatar" style="background:#e8a838;color:#1a1a2e;">SM</div>
+              <div class="member-info"><div class="member-name">Sarah M.</div><div class="member-meta">District Team Lead · Curriculum Dir.</div></div>
+              <div class="member-badges"><span class="mini-badge">🎯</span><span class="mini-badge">📊</span></div>
+            </div>
+            <div class="member-card">
+              <div class="member-avatar" style="background:#dbeafe;color:#1e3a8a;">KT</div>
+              <div class="member-info"><div class="member-name">Kim T.</div><div class="member-meta">Educator Member · Instructional Coach</div></div>
+              <div class="member-badges"><span class="mini-badge">🎯</span></div>
+            </div>
+            <div class="member-card">
+              <div class="member-avatar" style="background:#d1fae5;color:#065f46;">DC</div>
+              <div class="member-info"><div class="member-name">Dr. Chen</div><div class="member-meta">District Champion · Superintendent</div></div>
+              <div class="member-badges"><span class="mini-badge">🎯</span><span class="mini-badge">📊</span><span class="mini-badge">🏛️</span></div>
+            </div>
+            <div style="margin-top:10px;"><button class="primary" style="font-size:12px;">+ Invite Team Member</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PD CATALOG VIEW -->
+    <div class="view" id="view-pd">
+      <div class="page-header">
+        <div class="page-header-icon">📚</div>
+        <div>
+          <h1>PD Catalog</h1>
+          <p>Professional learning opportunities aligned to the FLC Innovation Framework. Courses link directly to the Michigan Virtual PLP via Single Sign-On — no separate account needed.</p>
+          <div class="tags"><span class="tag green">Hub-and-Spoke (SSO to MV PLP)</span><span class="tag gold">SCECH Credit Available</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>📋 PD by Domain — Quick Reference</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
+          <div style="background:#dbeafe;border-radius:8px;padding:12px;">
+            <div style="font-weight:700;font-size:12.5px;color:#1e3a8a;margin-bottom:6px;">🏛️ Why: Community Vision</div>
+            <div style="font-size:12px;color:#2a4a8a;line-height:1.7;">
+              • Community Engagement for School Leaders <span style="background:#bfdbfe;padding:1px 5px;border-radius:4px;font-size:10px;font-weight:600;">2 SCECH</span><br>
+              • Designing a Portrait of a Graduate <span style="background:#bfdbfe;padding:1px 5px;border-radius:4px;font-size:10px;font-weight:600;">1 SCECH</span>
+            </div>
+          </div>
+          <div style="background:#d1fae5;border-radius:8px;padding:12px;">
+            <div style="font-weight:700;font-size:12.5px;color:#065f46;margin-bottom:6px;">⏱️ What: Learner Outcomes</div>
+            <div style="font-size:12px;color:#1a5a40;line-height:1.7;">
+              • Writing Competency-Based Progressions <span style="background:#a7f3d0;padding:1px 5px;border-radius:4px;font-size:10px;font-weight:600;">3 SCECH</span><br>
+              • Standards Alignment in PCBL <span style="background:#a7f3d0;padding:1px 5px;border-radius:4px;font-size:10px;font-weight:600;">2 SCECH</span>
+            </div>
+          </div>
+          <div style="background:#fef3c7;border-radius:8px;padding:12px;">
+            <div style="font-weight:700;font-size:12.5px;color:#78350f;margin-bottom:6px;">📋 How: Learning Model</div>
+            <div style="font-size:12px;color:#5a3010;line-height:1.7;">
+              • PCBL Instructional Design Cohort <span style="background:#fde68a;padding:1px 5px;border-radius:4px;font-size:10px;font-weight:600;">6 SCECH</span><br>
+              • Assessment in a Competency-Based Classroom <span style="background:#fde68a;padding:1px 5px;border-radius:4px;font-size:10px;font-weight:600;">3 SCECH</span>
+            </div>
+          </div>
+          <div style="background:#ede9fe;border-radius:8px;padding:12px;">
+            <div style="font-weight:700;font-size:12.5px;color:#4c1d95;margin-bottom:6px;">✅ When: Strategy</div>
+            <div style="font-size:12px;color:#3a1a70;line-height:1.7;">
+              • Leading District Innovation Strategy <span style="background:#ddd6fe;padding:1px 5px;border-radius:4px;font-size:10px;font-weight:600;">2 SCECH</span><br>
+              • Designing and Running Iterative Pilots <span style="background:#ddd6fe;padding:1px 5px;border-radius:4px;font-size:10px;font-weight:600;">1 SCECH</span>
+            </div>
+          </div>
+        </div>
+        <div class="inline-notice" style="margin-top:14px;">🔗 Clicking <strong>Enroll</strong> on any course takes you directly to the Michigan Virtual PLP — you'll be authenticated automatically via SSO. Completion data flows back to your FLC progress record.</div>
+      </div>
+    </div>
+
+    <!-- EVENTS VIEW -->
+    <div class="view" id="view-events">
+      <div class="page-header">
+        <div class="page-header-icon">📅</div>
+        <div>
+          <h1>Office Hours & Events</h1>
+          <p>Live learning sessions, peer panels, and facilitator-led deep dives. RSVP directly from the portal — events run via Zoom with replay access posted afterward.</p>
+        </div>
+      </div>
+      <div class="card">
+        <h3>📅 Upcoming Events</h3>
+        <div class="event-item">
+          <div class="event-date"><div class="month">APR</div><div class="day">17</div></div>
+          <div class="event-info" style="flex:1;">
+            <div class="event-title">Office Hours: Writing Competency Progressions</div>
+            <div class="event-meta">Thu 3:00–4:00pm CT · Zoom · Facilitated by Maria V. (Michigan Virtual)</div>
+            <div style="margin-top:6px;font-size:12px;color:#5a6a80;">Bring your questions about aligning progressions to grade-level standards. 34 RSVPs</div>
+            <button class="rsvp-btn" style="margin-top:8px;">✓ RSVP for Event</button>
+          </div>
+          <div style="font-size:20px;align-self:center;">🟢</div>
+        </div>
+        <div class="event-item">
+          <div class="event-date"><div class="month">APR</div><div class="day">24</div></div>
+          <div class="event-info" style="flex:1;">
+            <div class="event-title">Peer Panel: How Districts Are Approaching Assessment</div>
+            <div class="event-meta">Thu 3:00–4:00pm CT · Zoom · Featuring: Kalamazoo PS, Grand Rapids PS, Flint CS</div>
+            <button class="rsvp-btn" style="margin-top:8px;">RSVP</button>
+          </div>
+        </div>
+        <div class="event-item">
+          <div class="event-date"><div class="month">MAY</div><div class="day">1</div></div>
+          <div class="event-info" style="flex:1;">
+            <div class="event-title">Domain Deep Dive: Community Vision (Why)</div>
+            <div class="event-meta">Thu 3:00–4:30pm CT · Zoom · Quarterly deep dive series</div>
+            <button class="rsvp-btn" style="margin-top:8px;">RSVP</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>🎬 Recent Replays</h3>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:9px;background:#f8f9fc;border-radius:8px;">
+            <div><div style="font-weight:600;font-size:13px;color:#1a3a5c;">Office Hours: Designing Your Learner Portrait (Mar 20)</div><div style="font-size:12px;color:#7a8a9c;">62 min · 41 attendees</div></div>
+            <button class="primary" style="font-size:12px;padding:6px 12px;">▶ Watch</button>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:9px;background:#f8f9fc;border-radius:8px;">
+            <div><div style="font-weight:600;font-size:13px;color:#1a3a5c;">Guest Speaker: Getting Smart on PCBL Implementation (Mar 6)</div><div style="font-size:12px;color:#7a8a9c;">90 min · 78 attendees</div></div>
+            <button class="primary" style="font-size:12px;padding:6px 12px;">▶ Watch</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLLABORATION LAB -->
+    <div class="view" id="view-collab">
+      <div class="page-header" style="border-left: 5px solid #7b8fa8; background: linear-gradient(135deg, #f4f6f9, white);">
+        <div class="page-header-icon">🤝</div>
+        <div>
+          <h1>TCAPS + Kalamazoo: Learner Portrait Co-Design</h1>
+          <p>A cross-district collaboration Space for Traverse City APS and Kalamazoo PS, focused on co-designing Learner Portrait approaches. Created by FLC Facilitator Maria V.</p>
+          <div class="tags"><span class="tag gray">Collaboration Lab (Invite Only)</span><span class="tag" style="background:#dbeafe;color:#1e3a8a;">#WhyCommunityVision</span><span class="tag" style="background:#dbeafe;color:#1e3a8a;">#LearnerPortrait</span></div>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <h3>💬 Collaboration Feed</h3>
+          <div class="post-item">
+            <div class="post-avatar" style="background:#d1fae5;color:#065f46;">JK</div>
+            <div class="post-content">
+              <div class="name">Jennifer K. · Kalamazoo PS</div>
+              <div class="meta">Yesterday</div>
+              <div class="text">I shared our community survey template in the Featured Resources below — feel free to adapt it for Traverse City's context.</div>
+              <div class="reactions">❤️ 3</div>
+            </div>
+          </div>
+          <div class="post-item">
+            <div class="post-avatar" style="background:#e8a838;color:#1a1a2e;">SM</div>
+            <div class="post-content">
+              <div class="name">Sarah M. · Traverse City APS</div>
+              <div class="meta">2 days ago</div>
+              <div class="text">Thank you! We're planning our first community session for May 3. Would love your feedback on our draft facilitation guide before then.</div>
+              <div class="reactions">💬 2 replies</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div class="card">
+            <h3>📌 Shared Resources</h3>
+            <div style="font-size:13px;color:#5a6a80;display:flex;flex-direction:column;gap:7px;margin-top:4px;">
+              <div style="padding:8px;background:#f0f7ff;border-radius:7px;">📎 Community Survey Template — Kalamazoo PS</div>
+              <div style="padding:8px;background:#f0f7ff;border-radius:7px;">📎 Learner Portrait Facilitation Guide — TCAPS draft</div>
+              <div style="padding:8px;background:#f0f7ff;border-radius:7px;">🔗 XQ Learner Goals Framework Reference</div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>📅 Next Session</h3>
+            <div class="event-item" style="padding:8px 0;">
+              <div class="event-date" style="background:#7b8fa8;"><div class="month">APR</div><div class="day">22</div></div>
+              <div class="event-info">
+                <div class="event-title">Joint Work Session: Survey Design Review</div>
+                <div class="event-meta">Tue 2:00pm · Zoom</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ARTIFACT GALLERY -->
+    <div class="view" id="view-gallery">
+      <div class="page-header">
+        <div class="page-header-icon">🖼️</div>
+        <div>
+          <h1>Artifact Gallery</h1>
+          <p>A shared library of exemplar artifacts created by FLC districts and voluntarily shared with the community. Browse by domain, sub-element, or district to find real examples from the field.</p>
+          <div class="tags"><span class="tag green">Open to all members</span><span class="tag">Searchable by hashtag</span></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+        <span class="tag" style="cursor:pointer;padding:5px 10px;">#LearnerPortrait</span>
+        <span class="tag" style="cursor:pointer;padding:5px 10px;">#CompetencyProgressions</span>
+        <span class="tag" style="cursor:pointer;padding:5px 10px;">#VisionStatement</span>
+        <span class="tag" style="cursor:pointer;padding:5px 10px;">#AssessmentModel</span>
+        <span class="tag" style="cursor:pointer;padding:5px 10px;">#PilotPlan</span>
+        <span class="tag gray" style="cursor:pointer;padding:5px 10px;">+ Browse all tags →</span>
+      </div>
+      <div class="three-col">
+        <div class="artifact-card">
+          <div class="art-domain">🏛️ Why — Learner Portrait</div>
+          <div class="art-title">Portrait of a Graduate: Kalamazoo PS</div>
+          <div class="art-district">Kalamazoo Public Schools · Jennifer K.</div>
+          <div class="art-tags"><span class="tag">#LearnerPortrait</span><span class="tag">#WhyCommunityVision</span></div>
+        </div>
+        <div class="artifact-card">
+          <div class="art-domain">⏱️ What — Competency Progressions</div>
+          <div class="art-title">ELA Competency Framework, Grades 6–8</div>
+          <div class="art-district">Grand Rapids Public Schools · Robert B.</div>
+          <div class="art-tags"><span class="tag">#CompetencyProgressions</span><span class="tag">#WhatLearnerOutcomes</span></div>
+        </div>
+        <div class="artifact-card">
+          <div class="art-domain">✅ When — Strategic Plan</div>
+          <div class="art-title">Year 1 PCBL Pilot Design Document</div>
+          <div class="art-district">Flint Community Schools · Tanya R.</div>
+          <div class="art-tags"><span class="tag">#PilotPlan</span><span class="tag">#WhenStrategy</span></div>
+        </div>
+        <div class="artifact-card">
+          <div class="art-domain">📋 How — Assessment Model</div>
+          <div class="art-title">Competency-Based Grading Policy Template</div>
+          <div class="art-district">Lansing School District</div>
+          <div class="art-tags"><span class="tag">#AssessmentModel</span><span class="tag">#HowLearningModel</span></div>
+        </div>
+        <div class="artifact-card">
+          <div class="art-domain">🏛️ Why — Community Vision</div>
+          <div class="art-title">Community Visioning Session Facilitation Guide</div>
+          <div class="art-district">Kalamazoo Public Schools · Jennifer K.</div>
+          <div class="art-tags"><span class="tag">#CommunityNeed</span><span class="tag">#StakeholderEngagement</span></div>
+        </div>
+        <div class="artifact-card" style="border:2px dashed #c8d4e0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;min-height:120px;cursor:pointer;">
+          <div style="font-size:22px;">+</div>
+          <div style="font-size:13px;font-weight:600;color:#5a6a80;text-align:center;">Share an artifact from your District Workspace</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCALING STORIES -->
+    <div class="view" id="view-scaling">
+      <div class="page-header">
+        <div class="page-header-icon">📈</div>
+        <div>
+          <h1>Scaling Stories</h1>
+          <p>Theory of Change documentation and codification playbooks from districts that have made significant progress through the Innovation Framework. These stories build Michigan's statewide evidence base for PCBL.</p>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <h3>📖 Theory of Change Stories</h3>
+          <div style="font-size:13px;color:#5a6a80;display:flex;flex-direction:column;gap:10px;margin-top:4px;">
+            <div style="padding:10px;background:#f0f7ff;border-radius:8px;">
+              <div style="font-weight:600;color:#1a3a5c;">Kalamazoo PS: From Vision to Pilot</div>
+              <div style="margin-top:3px;font-size:12px;line-height:1.5;">Challenge → Activities → Outcomes → Vision Connection</div>
+              <div style="margin-top:6px;font-size:11px;color:#7a8a9c;">📌 Featured by FLC Facilitators · 🏅 Storyteller Badge</div>
+            </div>
+            <div style="padding:10px;background:#f0f7ff;border-radius:8px;">
+              <div style="font-weight:600;color:#1a3a5c;">Grand Rapids PS: Scaling Competency Progressions</div>
+              <div style="margin-top:3px;font-size:12px;line-height:1.5;">District-wide rollout of PCBL in 6 secondary schools</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>🗂️ Playbook Library</h3>
+          <div style="font-size:13px;color:#5a6a80;display:flex;flex-direction:column;gap:10px;margin-top:4px;">
+            <div style="padding:10px;background:#e4f6ee;border-radius:8px;">
+              <div style="font-weight:600;color:#1a3a5c;">Community Engagement Playbook</div>
+              <div style="margin-top:3px;font-size:12px;">Context · Core Components · Implementation Steps · Evidence</div>
+              <div style="margin-top:4px;"><span class="tag">#WhyCommunityVision</span></div>
+            </div>
+            <div style="padding:10px;background:#e4f6ee;border-radius:8px;">
+              <div style="font-weight:600;color:#1a3a5c;">Competency Progression Co-Design Playbook</div>
+              <div style="margin-top:3px;font-size:12px;">A replicable model for teacher-led progression writing</div>
+              <div style="margin-top:4px;"><span class="tag">#WhatLearnerOutcomes</span><span class="tag" style="margin-left:4px;">#CompetencyProgressions</span></div>
+            </div>
+          </div>
+          <div style="margin-top:12px;"><button class="primary" style="font-size:12px;">+ Create a Playbook</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PEOPLE EXPLORER VIEW -->
+    <div class="view" id="view-people">
+      <div class="page-header">
+        <div class="page-header-icon">👥</div>
+        <div>
+          <h1>People Explorer</h1>
+          <p>Find peer districts at a similar stage of their framework journey, in your region, or working on the same domain. Connect, share lessons, and form collaborative working groups.</p>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:0;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <select style="border:1.5px solid #e0e6ef;border-radius:8px;padding:7px 12px;font-size:13px;color:#1a3a5c;background:white;">
+            <option>ISD Region: All</option><option>Traverse Bay RESD</option><option>KRESA</option><option>Ottawa Area ISD</option>
+          </select>
+          <select style="border:1.5px solid #e0e6ef;border-radius:8px;padding:7px 12px;font-size:13px;color:#1a3a5c;background:white;">
+            <option>PCBL Readiness: All</option><option>Exploring</option><option>Emerging</option><option>Developing</option><option>Implementing</option><option>Scaling</option>
+          </select>
+          <select style="border:1.5px solid #e0e6ef;border-radius:8px;padding:7px 12px;font-size:13px;color:#1a3a5c;background:white;">
+            <option>Framework Focus: All</option><option>Why: Community Vision</option><option>What: Learner Outcomes</option><option>How: Learning Model</option>
+          </select>
+          <button class="primary">Search</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>🤖 Suggested Peer Matches for Traverse City APS</h3>
+        <div class="member-card">
+          <div class="member-avatar" style="background:#d1fae5;color:#065f46;">KP</div>
+          <div class="member-info">
+            <div class="member-name">Kalamazoo Public Schools</div>
+            <div class="member-meta">KRESA · Emerging · Focus: Why, What · 6 members on FLC</div>
+          </div>
+          <button style="background:none;border:1.5px solid #2a6aac;color:#2a6aac;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;margin-left:auto;">Connect →</button>
+        </div>
+        <div class="member-card">
+          <div class="member-avatar" style="background:#fef3c7;color:#78350f;">FL</div>
+          <div class="member-info">
+            <div class="member-name">Flint Community Schools</div>
+            <div class="member-meta">Genesee ISD · Emerging · Focus: Why, When · 4 members on FLC</div>
+          </div>
+          <button style="background:none;border:1.5px solid #2a6aac;color:#2a6aac;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;margin-left:auto;">Connect →</button>
+        </div>
+        <div class="member-card">
+          <div class="member-avatar" style="background:#ede9fe;color:#4c1d95;">SB</div>
+          <div class="member-info">
+            <div class="member-name">Suttons Bay Schools</div>
+            <div class="member-meta">Traverse Bay RESD · Developing · Focus: Why, How · 3 members on FLC</div>
+          </div>
+          <button style="background:none;border:1.5px solid #2a6aac;color:#2a6aac;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;margin-left:auto;">Connect →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MEETING RESOURCES VIEW -->
+    <div class="view" id="view-meetings">
+      <div class="page-header">
+        <div class="page-header-icon">📁</div>
+        <div>
+          <h1>Meeting Resources — 2026–27</h1>
+          <p>Agendas, slides, notes, and action items for every FLC meeting. Each folder corresponds to a date on the annual calendar. Resources are added by FLC Facilitators before and after each session.</p>
+          <div class="tags">
+            <span class="tag" style="background:#dbeafe;color:#1e3a8a;">🏛️ FLC Meeting</span>
+            <span class="tag" style="background:#d1fae5;color:#065f46;">🤝 FLC–ISD Meeting</span>
+            <span class="tag" style="background:#fef3db;color:#9a6500;">💻 Virtual Office Hours</span>
+            <span class="tag" style="background:#fce7f3;color:#831843;">⭐ Annual Summit</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="meeting-filter-bar">
+        <button class="mfilter-btn active" onclick="filterMeetings('all', this)">All Meetings</button>
+        <button class="mfilter-btn" onclick="filterMeetings('flc', this)">FLC Meetings</button>
+        <button class="mfilter-btn" onclick="filterMeetings('isd', this)">FLC–ISD Meetings</button>
+        <button class="mfilter-btn" onclick="filterMeetings('special', this)">Special Events</button>
+      </div>
+
+      <div class="meeting-grid" id="meeting-grid">
+
+        <!-- SEP 16: Annual Kickoff -->
+        <div class="folder-card" data-type="kickoff">
+          <div class="folder-tab ft-kickoff"></div>
+          <div class="folder-header fh-kickoff">
+            <div class="folder-type mt-kickoff">⭐ Annual Kickoff</div>
+            <div class="folder-title">Annual Kickoff Meeting<span class="upcoming-badge">Upcoming</span></div>
+            <div class="folder-meta">
+              <span>📅 September 16, 2026 &nbsp;·&nbsp; 9:00am–3:00pm</span>
+              <span>📍 Grand Ledge Admin Bldg — 220 Lamson St, Grand Ledge</span>
+            </div>
+          </div>
+          <div class="folder-body">
+            <div class="folder-files">
+              <div class="folder-file empty"><span class="file-icon">📄</span> Agenda — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📊</span> Slides — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📝</span> Meeting Notes — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">✅</span> Action Items — not yet posted</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- OCT 13: FLC-ISD Meeting -->
+        <div class="folder-card" data-type="isd">
+          <div class="folder-tab ft-isd"></div>
+          <div class="folder-header fh-isd">
+            <div class="folder-type mt-isd">🤝 FLC–ISD Meeting</div>
+            <div class="folder-title">FLC–ISD Meeting</div>
+            <div class="folder-meta">
+              <span>📅 October 13, 2026 &nbsp;·&nbsp; 11:30am–3:00pm</span>
+              <span>📍 Michigan Virtual Campus — 920 Municipal Way, Lansing</span>
+            </div>
+          </div>
+          <div class="folder-body">
+            <div class="folder-files">
+              <div class="folder-file empty"><span class="file-icon">📄</span> Agenda — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📊</span> Slides — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📝</span> Meeting Notes — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">✅</span> Action Items — not yet posted</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- OCT 14: FLC Meeting -->
+        <div class="folder-card" data-type="flc">
+          <div class="folder-tab ft-flc"></div>
+          <div class="folder-header fh-flc">
+            <div class="folder-type mt-flc">🏛️ FLC Meeting</div>
+            <div class="folder-title">FLC Meeting</div>
+            <div class="folder-meta">
+              <span>📅 October 14, 2026 &nbsp;·&nbsp; 9:00am–3:00pm</span>
+              <span>📍 Grand Ledge Admin Bldg</span>
+            </div>
+          </div>
+          <div class="folder-body">
+            <div class="folder-files">
+              <div class="folder-file empty"><span class="file-icon">📄</span> Agenda — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📊</span> Slides — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📝</span> Meeting Notes — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">✅</span> Action Items — not yet posted</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NOV 10: FLC-ISD Meeting -->
+        <div class="folder-card" data-type="isd">
+          <div class="folder-tab ft-isd"></div>
+          <div class="folder-header fh-isd">
+            <div class="folder-type mt-isd">🤝 FLC–ISD Meeting</div>
+            <div class="folder-title">FLC–ISD Meeting</div>
+            <div class="folder-meta">
+              <span>📅 November 10, 2026 &nbsp;·&nbsp; 11:30am–3:00pm</span>
+              <span>📍 Michigan Virtual Campus — Lansing</span>
+            </div>
+          </div>
+          <div class="folder-body">
+            <div class="folder-files">
+              <div class="folder-file empty"><span class="file-icon">📄</span> Agenda — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📊</span> Slides — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📝</span> Meeting Notes — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">✅</span> Action Items — not yet posted</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NOV 11: FLC Meeting -->
+        <div class="folder-card" data-type="flc">
+          <div class="folder-tab ft-flc"></div>
+          <div class="folder-header fh-flc">
+            <div class="folder-type mt-flc">🏛️ FLC Meeting</div>
+            <div class="folder-title">FLC Meeting</div>
+            <div class="folder-meta">
+              <span>📅 November 11, 2026 &nbsp;·&nbsp; 9:00am–3:00pm</span>
+              <span>📍 Grand Ledge Admin Bldg</span>
+            </div>
+          </div>
+          <div class="folder-body">
+            <div class="folder-files">
+              <div class="folder-file empty"><span class="file-icon">📄</span> Agenda — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📊</span> Slides — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📝</span> Meeting Notes — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">✅</span> Action Items — not yet posted</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DEC 8: FLC-ISD Meeting -->
+        <div class="folder-card" data-type="isd">
+          <div class="folder-tab ft-isd"></div>
+          <div class="folder-header fh-isd">
+            <div class="folder-type mt-isd">🤝 FLC–ISD Meeting</div>
+            <div class="folder-title">FLC–ISD Meeting</div>
+            <div class="folder-meta">
+              <span>📅 December 8, 2026 &nbsp;·&nbsp; 11:30am–3:00pm</span>
+              <span>📍 Michigan Virtual Campus — Lansing</span>
+            </div>
+          </div>
+          <div class="folder-body">
+            <div class="folder-files">
+              <div class="folder-file empty"><span class="file-icon">📄</span> Agenda — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📊</span> Slides — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📝</span> Meeting Notes — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">✅</span> Action Items — not yet posted</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DEC 9: FLC Meeting -->
+        <div class="folder-card" data-type="flc">
+          <div class="folder-tab ft-flc"></div>
+          <div class="folder-header fh-flc">
+            <div class="folder-type mt-flc">🏛️ FLC Meeting</div>
+            <div class="folder-title">FLC Meeting</div>
+            <div class="folder-meta">
+              <span>📅 December 9, 2026 &nbsp;·&nbsp; 9:00am–3:00pm</span>
+              <span>📍 Grand Ledge Admin Bldg</span>
+            </div>
+          </div>
+          <div class="folder-body">
+            <div class="folder-files">
+              <div class="folder-file empty"><span class="file-icon">📄</span> Agenda — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📊</span> Slides — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📝</span> Meeting Notes — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">✅</span> Action Items — not yet posted</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- JAN 12: FLC-ISD Meeting -->
+        <div class="folder-card" data-type="isd">
+          <div class="folder-tab ft-isd"></div>
+          <div class="folder-header fh-isd">
+            <div class="folder-type mt-isd">🤝 FLC–ISD Meeting</div>
+            <div class="folder-title">FLC–ISD Meeting</div>
+            <div class="folder-meta">
+              <span>📅 January 12, 2027 &nbsp;·&nbsp; 11:30am–3:00pm</span>
+              <span>📍 Michigan Virtual Campus — Lansing</span>
+            </div>
+          </div>
+          <div class="folder-body">
+            <div class="folder-files">
+              <div class="folder-file empty"><span class="file-icon">📄</span> Agenda — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📊</span> Slides — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📝</span> Meeting Notes — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">✅</span> Action Items — not yet posted</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- JAN 13: FLC Meeting -->
+        <div class="folder-card" data-type="flc">
+          <div class="folder-tab ft-flc"></div>
+          <div class="folder-header fh-flc">
+            <div class="folder-type mt-flc">🏛️ FLC Meeting</div>
+            <div class="folder-title">FLC Meeting</div>
+            <div class="folder-meta">
+              <span>📅 January 13, 2027 &nbsp;·&nbsp; 9:00am–3:00pm</span>
+              <span>📍 Grand Ledge Admin Bldg</span>
+            </div>
+          </div>
+          <div class="folder-body">
+            <div class="folder-files">
+              <div class="folder-file empty"><span class="file-icon">📄</span> Agenda — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📊</span> Slides — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📝</span> Meeting Notes — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">✅</span> Action Items — not yet posted</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FEB 9: FLC-ISD Meeting -->
+        <div class="folder-card" data-type="isd">
+          <div class="folder-tab ft-isd"></div>
+          <div class="folder-header fh-isd">
+            <div class="folder-type mt-isd">🤝 FLC–ISD Meeting</div>
+            <div class="folder-title">FLC–ISD Meeting</div>
+            <div class="folder-meta">
+              <span>📅 February 9, 2027 &nbsp;·&nbsp; 11:30am–3:00pm</span>
+              <span>📍 Michigan Virtual Campus — Lansing</span>
+            </div>
+          </div>
+          <div class="folder-body">
+            <div class="folder-files">
+              <div class="folder-file empty"><span class="file-icon">📄</span> Agenda — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📊</span> Slides — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📝</span> Meeting Notes — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">✅</span> Action Items — not yet posted</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FEB 10: FLC Meeting -->
+        <div class="folder-card" data-type="flc">
+          <div class="folder-tab ft-flc"></div>
+          <div class="folder-header fh-flc">
+            <div class="folder-type mt-flc">🏛️ FLC Meeting</div>
+            <div class="folder-title">FLC Meeting</div>
+            <div class="folder-meta">
+              <span>📅 February 10, 2027 &nbsp;·&nbsp; 9:00am–3:00pm</span>
+              <span>📍 Grand Ledge Admin Bldg</span>
+            </div>
+          </div>
+          <div class="folder-body">
+            <div class="folder-files">
+              <div class="folder-file empty"><span class="file-icon">📄</span> Agenda — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📊</span> Slides — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📝</span> Meeting Notes — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">✅</span> Action Items — not yet posted</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MAR 9: FLC-ISD Meeting -->
+        <div class="folder-card" data-type="isd">
+          <div class="folder-tab ft-isd"></div>
+          <div class="folder-header fh-isd">
+            <div class="folder-type mt-isd">🤝 FLC–ISD Meeting</div>
+            <div class="folder-title">FLC–ISD Meeting</div>
+            <div class="folder-meta">
+              <span>📅 March 9, 2027 &nbsp;·&nbsp; 11:30am–3:00pm</span>
+              <span>📍 Michigan Virtual Campus — Lansing</span>
+            </div>
+          </div>
+          <div class="folder-body">
+            <div class="folder-files">
+              <div class="folder-file empty"><span class="file-icon">📄</span> Agenda — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📊</span> Slides — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📝</span> Meeting Notes — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">✅</span> Action Items — not yet posted</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MAR 10: FLC Meeting -->
+        <div class="folder-card" data-type="flc">
+          <div class="folder-tab ft-flc"></div>
+          <div class="folder-header fh-flc">
+            <div class="folder-type mt-flc">🏛️ FLC Meeting</div>
+            <div class="folder-title">FLC Meeting</div>
+            <div class="folder-meta">
+              <span>📅 March 10, 2027 &nbsp;·&nbsp; 9:00am–3:00pm</span>
+              <span>📍 Grand Ledge Admin Bldg</span>
+            </div>
+          </div>
+          <div class="folder-body">
+            <div class="folder-files">
+              <div class="folder-file empty"><span class="file-icon">📄</span> Agenda — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📊</span> Slides — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📝</span> Meeting Notes — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">✅</span> Action Items — not yet posted</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- APR: Virtual Office Hours -->
+        <div class="folder-card" data-type="virtual">
+          <div class="folder-tab ft-virtual"></div>
+          <div class="folder-header fh-virtual">
+            <div class="folder-type mt-virtual">💻 Virtual Office Hours</div>
+            <div class="folder-title">Virtual Office Hours</div>
+            <div class="folder-meta">
+              <span>📅 April 2027 &nbsp;·&nbsp; Date/Time TBD</span>
+              <span>📍 Virtual (Zoom)</span>
+            </div>
+          </div>
+          <div class="folder-body">
+            <div class="folder-files">
+              <div class="folder-file empty"><span class="file-icon">📄</span> Agenda — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">🔗</span> Zoom Link — TBD</div>
+              <div class="folder-file empty"><span class="file-icon">📝</span> Session Notes — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">✅</span> Action Items — not yet posted</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MAY 12: Annual Summit -->
+        <div class="folder-card" data-type="summit">
+          <div class="folder-tab ft-summit"></div>
+          <div class="folder-header fh-summit">
+            <div class="folder-type mt-summit">⭐ Annual Summit</div>
+            <div class="folder-title">5th Annual FLC/MV Annual Summit</div>
+            <div class="folder-meta">
+              <span>📅 May 12, 2027 &nbsp;·&nbsp; 9:00am–3:00pm</span>
+              <span>📍 LCC West Campus</span>
+            </div>
+          </div>
+          <div class="folder-body">
+            <div class="folder-files">
+              <div class="folder-file empty"><span class="file-icon">📄</span> Agenda — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📊</span> Slides — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">📝</span> Summit Recap — not yet posted</div>
+              <div class="folder-file empty"><span class="file-icon">🖼️</span> Shared Artifacts — not yet posted</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /meeting-grid -->
+
+      <div class="inline-notice" style="margin-top:4px;">
+        📌 <strong>For FLC Facilitators:</strong> Upload agendas, slides, notes, and action items to each meeting folder before and after each session. Files become visible to all FLC members once posted.
+      </div>
+
+    </div><!-- /view-meetings -->
+
+  </main>
+</div>
+
+<script>
+  function showView(id) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const view = document.getElementById('view-' + id);
+    if (view) view.classList.add('active');
+    const nav = document.getElementById('nav-' + id);
+    if (nav) nav.classList.add('active');
+  }
+
+  function filterMeetings(type, btn) {
+    // Update button state
+    document.querySelectorAll('.mfilter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    // Filter cards
+    const cards = document.querySelectorAll('#meeting-grid .folder-card');
+    const typeMap = {
+      'all': null,
+      'flc': ['flc', 'kickoff'],
+      'isd': ['isd'],
+      'special': ['virtual', 'summit', 'kickoff']
+    };
+    const allowed = typeMap[type];
+    cards.forEach(card => {
+      const cardType = card.getAttribute('data-type');
+      if (!allowed || allowed.includes(cardType)) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+</script>
+
+</body>
+</html>
